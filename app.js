@@ -111,7 +111,8 @@ var UIcontroller = (function() {
         budgetValue: `.budget__value`,
         totalInc: `.budget__income--value`,
         totalExp: `.budget__expenses--value`,
-        precented: `.budget__expenses--percentage`
+        precented: `.budget__expenses--percentage`,
+        container: `.container`
     }
 
     return {
@@ -132,7 +133,7 @@ var UIcontroller = (function() {
             // Create HTML string with placeholder text and replace to actual data
             if(type === `inc`) {
                 element = DOMstrings.incomeContainer;
-                html = ` <div class="item clearfix" id="income-${obj.id}">
+                html = ` <div class="item clearfix" id="inc-${obj.id}">
                 <div class="item__description">${obj.description}</div>
                 <div class="right clearfix">
                     <div class="item__value">+ ${obj.value}</div>
@@ -143,7 +144,7 @@ var UIcontroller = (function() {
                 </div>`;
             } else if(type === `exp`) {
                 element = DOMstrings.ExpenceContainer;
-                html = ` <div class="item clearfix" id="expense-${obj.id}">
+                html = ` <div class="item clearfix" id="exp-${obj.id}">
                 <div class="item__description">${obj.description}</div>
                 <div class="right clearfix">
                     <div class="item__value">- ${obj.value}</div>
@@ -201,6 +202,8 @@ var appController = (function(budgetCtrl, UICtrl) {
               ctrlAddItem();
             } 
         });
+
+        document.querySelector(DOM.container).addEventListener('click', ctrlDeleteItem);
     };
 
     var updateBudget = function () {
@@ -233,7 +236,20 @@ var appController = (function(budgetCtrl, UICtrl) {
         } else {
             alert(`write correct data`)
         }
-    }
+    };
+
+    var ctrlDeleteItem = function(event) {
+        var itemID, splitID, type, id;
+        itemID = event.target.parentNode.parentNode.parentNode.parentNode.id;
+
+        if(itemID) {
+            splitID = itemID.split(`-`);
+            console.log(itemID)
+            console.log(splitID)
+            type = splitID[0];
+            id = splitID[1];
+        }
+    };
 
     return {
         init: function() {

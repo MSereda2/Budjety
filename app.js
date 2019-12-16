@@ -177,8 +177,13 @@ var UIcontroller = (function() {
             document.querySelector(DOMstrings.budgetValue).textContent = data.budget;
             document.querySelector(DOMstrings.totalExp).textContent = data.totalExp;
             document.querySelector(DOMstrings.totalInc).textContent = data.totalInc;
-            document.querySelector(DOMstrings.precented).textContent = data.precenteg;
 
+            if(data.totalInc > 0) {
+                document.querySelector(DOMstrings.precented).textContent = data.precenteg + " %";
+            } else {
+                document.querySelector(DOMstrings.precented).textContent = 0;
+
+            }
         }
     }
 })();
@@ -206,7 +211,7 @@ var appController = (function(budgetCtrl, UICtrl) {
         var budget = budgetCtrl.getBudget();
         console.log(budget);
         //2. Display budget
-        budgetCtrl.updateBudget(budget);
+        UICtrl.updateBudget(budget);
     }
    
     var ctrlAddItem = function() { /// call back
@@ -234,6 +239,12 @@ var appController = (function(budgetCtrl, UICtrl) {
         init: function() {
             console.log(`app has started`);
             setupEventListeners();
+            UICtrl.updateBudget({
+                budget: 0,
+                totalInc: 0,
+                totalExp: 0,
+                precenteg: 0
+            })
         }
     };
 

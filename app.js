@@ -81,7 +81,7 @@ var budgetController = (function() {
 
       getBudget: function() {
           return {
-              buddget: data.budget,
+              budget: data.budget,
               totalInc: data.totals.inc,
               totalExp: data.totals.exp,
               precenteg: data.precenteg
@@ -107,7 +107,11 @@ var UIcontroller = (function() {
         inputValue: `.add__value`,
         addBtn: `.add__btn`,
         incomeContainer: `.income__list`,
-        ExpenceContainer: `.expenses__list`
+        ExpenceContainer: `.expenses__list`,
+        budgetValue: `.budget__value`,
+        totalInc: `.budget__income--value`,
+        totalExp: `.budget__expenses--value`,
+        precented: `.budget__expenses--percentage`
     }
 
     return {
@@ -170,10 +174,12 @@ var UIcontroller = (function() {
 
         updateBudget: function(data) {
             //1. Select DOM elements which we want to replace
-            document.querySelector(`.budget__value`).textContent = data.budget;
+            document.querySelector(DOMstrings.budgetValue).textContent = data.budget;
+            document.querySelector(DOMstrings.totalExp).textContent = data.totalExp;
+            document.querySelector(DOMstrings.totalInc).textContent = data.totalInc;
+            document.querySelector(DOMstrings.precented).textContent = data.precenteg;
+
         }
-
-
     }
 })();
 
@@ -200,6 +206,7 @@ var appController = (function(budgetCtrl, UICtrl) {
         var budget = budgetCtrl.getBudget();
         console.log(budget);
         //2. Display budget
+        budgetCtrl.updateBudget(budget);
     }
    
     var ctrlAddItem = function() { /// call back
@@ -217,7 +224,7 @@ var appController = (function(budgetCtrl, UICtrl) {
             UICtrl.clearInput();
 
             //5. Calculate and update budget
-            updateBudget(budgetCtrl.data);
+            updateBudget();
         } else {
             alert(`write correct data`)
         }

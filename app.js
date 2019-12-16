@@ -17,6 +17,15 @@ var budgetController = (function() {
     };
   };
 
+  var calculateTotal = function(type) {
+      var sum = 0;
+      data.allItems[type].forEach(function(current) {
+          sum = sum + current.value;
+      });
+
+      data.totals[type] = sum;
+  }
+
   var data = {
       allItems: {
           exp: [],
@@ -25,7 +34,9 @@ var budgetController = (function() {
       totals: {
           exp: 0,
           inc: 0
-        }
+        },
+       budget: 0,
+       precenteg: -1
   };
   
 
@@ -51,6 +62,30 @@ var budgetController = (function() {
             data.allItems[type].push(newItem);
             return newItem;
            
+      },
+
+      calculateBudget: function(newItem) {
+          // Calculate total income or expence
+            calculateTotal(`exp`);
+            calculateTotal(`inc`);
+          // Calculate buddget: income - expence
+            data.budget = data.totals.inc - data.totals.exp;
+          // Calculate the precenteg
+            if(data.totals.inc > 0) {
+                data.precenteg = Math.round((data.totals.exp / data.totals.inc) * 100);
+            } else {
+                data.precenteg = -1;
+            }
+           
+      },
+
+      getBudget: function() {
+          return {
+              buddget: data.budget,
+              totalInc: data.totals.inc,
+              totalExp: data.totals.exp,
+              precenteg: data.precenteg
+          }
       },
 
       testing: function() {
@@ -80,7 +115,7 @@ var UIcontroller = (function() {
             return {
                 type: document.querySelector(DOMstrings.inputType).value,  // either + or -
                 description: document.querySelector(DOMstrings.inputdescription).value,
-                value: document.querySelector(DOMstrings.inputValue).value
+                value: parseFloat(document.querySelector(DOMstrings.inputValue).value) 
             }
         },
 
@@ -131,6 +166,11 @@ var UIcontroller = (function() {
             });
 
             fieldsArr[0].focus();
+        },
+
+        updateBudget: function(data) {
+            //1. Select DOM elements which we want to replace
+            document.querySelector(`.budget__value`).textContent = data.budget;
         }
 
 
@@ -151,23 +191,36 @@ var appController = (function(budgetCtrl, UICtrl) {
             } 
         });
     };
+
+    var updateBudget = function () {
+        //1. Calculate the budget
+        budgetCtrl.calculateBudget();
+
+        //2. Return budget
+        var budget = budgetCtrl.getBudget();
+        console.log(budget);
+        //2. Display budget
+    }
    
     var ctrlAddItem = function() { /// call back
         //1. Get the filed input data
         var input = UICtrl.getInput();
 
-        //2. Add the item to the budget controller  
-        var newItem = budgetCtrl.addItem(input.type, input.description, input.value);
+        if(input.description !== "" && !isNaN(input.value) && input.value > 0) {
+            //2. Add the item to the budget controller  
+            var newItem = budgetCtrl.addItem(input.type, input.description, input.value);
   
-        //3. Add the item to the UI
-        UICtrl.addListItem(newItem,input.type);
+            //3. Add the item to the UI
+            UICtrl.addListItem(newItem,input.type);
 
-        //4. Clear the fields
-        UICtrl.clearInput();
+            //4. Clear the fields
+            UICtrl.clearInput();
 
-        //4. Calculate the budget
-
-        //5. Display budget
+            //5. Calculate and update budget
+            updateBudget(budgetCtrl.data);
+        } else {
+            alert(`write correct data`)
+        }
     }
 
     return {

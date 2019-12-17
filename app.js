@@ -233,7 +233,15 @@ var appController = (function(budgetCtrl, UICtrl) {
         console.log(budget);
         //2. Display budget
         UICtrl.updateBudget(budget);
-    }
+    };
+
+    var updatePercentages = function() {
+        // 1. Calculate percentages
+
+        // 2. Read from our budget controller 
+
+        // 3. Update UI
+    };
    
     var ctrlAddItem = function() { /// call back
         //1. Get the filed input data

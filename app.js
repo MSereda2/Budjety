@@ -6,7 +6,21 @@ var budgetController = (function() {
         this.id = id;
         this.description = description;
         this.value = value;
+        this.precenteg = -1;
     };
+
+    calcPresentege(totalIncome) {
+        if(totalIncome > 0) {
+            this.precenteg = Math.round((this.value / totalIncome) * 100);
+        } else {
+            this.precenteg = -1;
+        }
+        
+    };
+
+    getPresentege() {
+        return this.precenteg
+    }
   };
 
   class Income {
@@ -92,6 +106,19 @@ var budgetController = (function() {
            
       },
 
+      calculatePrecentages: function() {
+            data.allItems.exp.forEach(function(current) {
+                current.calcPresentege(data.totals.inc)
+            })
+      },
+
+      getPresentege: function() {
+            var allPerc = data.allItems.exp.map(function(cur) {
+               return cur.getPresentege();
+            });
+            return allPerc;
+      },
+
       getBudget: function() {
           return {
               budget: data.budget,
@@ -125,7 +152,8 @@ var UIcontroller = (function() {
         totalInc: `.budget__income--value`,
         totalExp: `.budget__expenses--value`,
         precented: `.budget__expenses--percentage`,
-        container: `.container`
+        container: `.container`,
+        expencesPrece: `.item__percentage`
     }
 
     return {
@@ -149,7 +177,7 @@ var UIcontroller = (function() {
                 html = ` <div class="item clearfix" id="inc-${obj.id}">
                 <div class="item__description">${obj.description}</div>
                 <div class="right clearfix">
-                    <div class="item__value">+ ${obj.value}</div>
+                    <div class="item__value">${this.formatedNumber(obj.value, type)}</div>
                     <div class="item__delete">
                         <button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button>
                     </div>
@@ -160,7 +188,7 @@ var UIcontroller = (function() {
                 html = ` <div class="item clearfix" id="exp-${obj.id}">
                 <div class="item__description">${obj.description}</div>
                 <div class="right clearfix">
-                    <div class="item__value">- ${obj.value}</div>
+                    <div class="item__value">${this.formatedNumber(obj.value, type)}</div>
                     <div class="item__percentage">21%</div>
                     <div class="item__delete">
                         <button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button>
@@ -191,11 +219,34 @@ var UIcontroller = (function() {
             fieldsArr[0].focus();
         },
 
+        displayProsentege: function(presenteges) {
+            var fields = document.querySelectorAll(DOMstrings.expencesPrece);
+
+            var nodeListForEach = function(list, callback) {
+                for(var i = 0; i < list.length; i++) {
+                    callback(list[i], i);
+                }
+            };
+
+            nodeListForEach(fields, function(current,index) {
+
+                if(presenteges[index] > 0) {
+                    current.textContent = presenteges[index] + "%";
+                } else {
+                    current.textContent = `---`;
+                }
+                
+            })
+        },
+
         updateBudget: function(data) {
             //1. Select DOM elements which we want to replace
-            document.querySelector(DOMstrings.budgetValue).textContent = data.budget;
-            document.querySelector(DOMstrings.totalExp).textContent = data.totalExp;
-            document.querySelector(DOMstrings.totalInc).textContent = data.totalInc;
+            var type;
+            data.budget > 0 ? type = 'inc' : type = "exp";
+
+            document.querySelector(DOMstrings.budgetValue).textContent = this.formatedNumber(data.budget, type);
+            document.querySelector(DOMstrings.totalExp).textContent = this.formatedNumber(data.totalExp, "exp");
+            document.querySelector(DOMstrings.totalInc).textContent = this.formatedNumber(data.totalInc, "inc");
 
             if(data.totalInc > 0) {
                 document.querySelector(DOMstrings.precented).textContent = data.precenteg + " %";
@@ -203,6 +254,30 @@ var UIcontroller = (function() {
                 document.querySelector(DOMstrings.precented).textContent = 0;
 
             }
+        },
+
+        formatedNumber: function(num,type) {
+            var type;
+            /* 
+                + or - before number
+                exactly 2 decimals points
+                comma separating the thousandsa
+            */
+
+            num = Math.abs(num);
+            num = num.toFixed(2);
+
+            var numSplit = num.split(`.`);
+
+            var int = numSplit[0];
+
+            if(int.length > 3) {
+              int = int.substr(0, int.length - 3) + ',' + int.substr(int.length - 3, 3);
+            }
+
+            var des = numSplit[1];
+
+            return (type === "exp" ? "-" : "+")  + ' ' + int + '.' + des;
         }
     }
 })();
@@ -237,10 +312,12 @@ var appController = (function(budgetCtrl, UICtrl) {
 
     var updatePercentages = function() {
         // 1. Calculate percentages
-
+        budgetCtrl.calculatePrecentages();
         // 2. Read from our budget controller 
+        var presenteges = budgetCtrl.getPresentege();
 
         // 3. Update UI
+        UICtrl.displayProsentege(presenteges);
     };
    
     var ctrlAddItem = function() { /// call back
@@ -259,6 +336,9 @@ var appController = (function(budgetCtrl, UICtrl) {
 
             //5. Calculate and update budget
             updateBudget();
+
+            //6. Update presenteges
+            updatePercentages();
         } else {
             alert(`write correct data`)
         }
@@ -281,6 +361,9 @@ var appController = (function(budgetCtrl, UICtrl) {
 
         //3. Update budget
         updateBudget();
+
+         //4. Update presenteges
+         updatePercentages();
     };
 
     return {
